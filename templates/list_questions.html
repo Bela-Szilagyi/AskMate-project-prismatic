@@ -31,9 +31,14 @@
                 {% for row in question_list %}
                     <tr>
                         <td> <a href='/question/{{ row[0] }}'>{{ row[0] }}</td>   
-                        {% for i in range(1, row|length) %}
+                        {% for i in range(1, 6) %}
                             <td>{{ row[i] }}</td>     
                         {% endfor %}
+                            {% if row[6] == '' %}
+                                <td><a href='/add_image/{{row[0]}}'>add image</td>
+                            {% else %}
+                                <td><img src='static/uploads/img/{{row[6]}}' width = 40px> 
+                            {% endif %}
                     </tr>
                 {% endfor %}
         </table>
