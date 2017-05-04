@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect
 import csv
 import data_manager
 import os
@@ -7,15 +7,10 @@ from werkzeug.utils import secure_filename
 
 current_file_path = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_FOLDER = 'static/uploads/img/images'
-ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
+ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 @app.route('/')
@@ -42,7 +37,7 @@ def new_question():
 
 
 @app.route('/question/<id>')
-def display_question(id):
+def display_question(id, count_view=True):
     # view counter += 1
     question_file_name = current_file_path + "/data/question.csv"
     question_list = data_manager.get_table_from_file(question_file_name, (4, 5, 6))
@@ -50,7 +45,8 @@ def display_question(id):
         if row[0] == id:
             title = row[4]
             message = row[5]
-            row[2] = str(int(row[2])+1)
+            if count_view:
+                row[2] = str(int(row[2])+1)  
             question_list = data_manager.get_timeform_to_stamp(question_list)
             data_manager.write_table_to_file(question_file_name, question_list, (4, 5, 6))
             break
@@ -61,6 +57,26 @@ def display_question(id):
         if row[3] == id:
             list_answers.append(row)
     return render_template('display_question.html', id=id, title=title, message=message, list_answers=list_answers)
+
+
+@app.route('/question/<question_id>/new-answer')
+def new_answer(question_id):
+    return render_template('new_answer.html', question_id=question_id)
+
+
+@app.route('/create_new_answer', methods=['POST'])
+def add_new_answer():
+    file_name = current_file_path + "/data/answer.csv"
+    answer_list = data_manager.get_table_from_file(file_name, (4, 5))
+    answer_list_csv_format = data_manager.get_timeform_to_stamp(answer_list)
+    answer_list_csv_format = data_manager.add_item_to_answer_table(answer_list_csv_format, request.form)
+    data_manager.write_table_to_file(file_name, answer_list_csv_format, (4, 5))
+    return redirect('/question/' + request.form["question_id"])
+
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 @app.route('/add_image/<id>', methods=['GET', 'POST'])
@@ -85,7 +101,6 @@ def add_image(id):
             for row in question_list:
                 if row[0] == id:
                     row[6] = '/images/' + filename
-                    print(filename)
                     break
             # update csv
             question_list_csv_format = data_manager.get_timeform_to_stamp(question_list)
@@ -93,6 +108,60 @@ def add_image(id):
             data_manager.write_table_to_file(question_file_name, question_list_csv_format, (4, 5, 6))
             return redirect('/')
     return render_template('file_upload.html')
+
+
+@app.route('/vote_question_up')
+def vote_question_up():
+    file_name = current_file_path + "/data/question.csv"
+    question_list = data_manager.get_table_from_file(file_name, (4, 5, 6))
+    for row in question_list:
+        if row[0] == request.args.get('id'):
+            row[3] = str(int(row[3]) + 1)
+            break
+    question_list_csv_format = data_manager.get_timeform_to_stamp(question_list)
+    data_manager.write_table_to_file(file_name, question_list_csv_format, (4, 5, 6))
+    return redirect('/')
+
+
+@app.route('/vote_question_down')
+def vote_question_down():
+    file_name = current_file_path + "/data/question.csv"
+    question_list = data_manager.get_table_from_file(file_name, (4, 5, 6))
+    for row in question_list:
+        if row[0] == request.args.get('id'):
+            row[3] = str(int(row[3]) - 1)
+            break
+    question_list_csv_format = data_manager.get_timeform_to_stamp(question_list)
+    data_manager.write_table_to_file(file_name, question_list_csv_format, (4, 5, 6))
+    return redirect('/')
+
+
+@app.route('/vote_answer_up')
+def vote_answer_up():
+    file_name = current_file_path + "/data/answer.csv"
+    answer_list = data_manager.get_table_from_file(file_name, (4, 5))
+    for row in answer_list:
+        if row[0] == request.args.get('id'):
+            row[2] = str(int(row[2]) + 1)
+            question_id = row[3]
+            break
+    answer_list_csv_format = data_manager.get_timeform_to_stamp(answer_list)
+    data_manager.write_table_to_file(file_name, answer_list_csv_format, (4, 5))
+    return display_question(question_id, count_view=False)
+
+
+@app.route('/vote_answer_down')
+def vote_answer_down():
+    file_name = current_file_path + "/data/answer.csv"
+    answer_list = data_manager.get_table_from_file(file_name, (4, 5))
+    for row in answer_list:
+        if row[0] == request.args.get('id'):
+            row[2] = str(int(row[2]) - 1)
+            question_id = row[3]
+            break
+    answer_list_csv_format = data_manager.get_timeform_to_stamp(answer_list)
+    data_manager.write_table_to_file(file_name, answer_list_csv_format, (4, 5))
+    return display_question(question_id, count_view=False)
 
 
 if __name__ == '__main__':

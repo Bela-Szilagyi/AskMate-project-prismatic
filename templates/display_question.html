@@ -19,7 +19,8 @@
     </h3>
 
     <form action="/question/{{ id }}/new-answer">
-        <input type="submit" value="Add new Answer" id="add" name="add_new_answer">
+        <input type="submit" value="Add new Answer" id="add_new_answer" name="add_new_answer">
+        <input type="submit" value="Back to questions" formaction="/">
     </form>
 
     <br>
@@ -32,12 +33,17 @@
                 <th>Question ID</th>
                 <th>Message</th>
                 <th>Image</th>
+                <th>Vote</th>
             </tr>               
             {% for row in list_answers %}
                 <tr>   
                     {% for cell in row %}
                         <td>{{ cell }}</td>     
                     {% endfor %}
+                    <td>
+                        <a href="/vote_answer_up?id={{ row[0] }}"><img src="/static/thumbs_up.png" id="{{ row[0] }}" alt="Vote up" width="20"></a>
+                        <a href="/vote_answer_down?id={{ row[0] }}"><img src="/static/thumbs_down.png" id="{{ row[0] }}" alt="Vote down" width="20"></a>
+                    </td>
                 </tr>
             {% endfor %}     
         </table>

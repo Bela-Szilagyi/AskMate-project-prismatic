@@ -47,7 +47,7 @@ def table_sort(table, sort_key_number, rev_boolean):
 
 
 def get_time_stamp():
-    print(str(int(time.time()))) 
+    # print(str(int(time.time()))) 
     return str(int(time.time()))
 
 
@@ -73,6 +73,19 @@ def add_item_to_table(table, request):
                  '0',
                  request['new_question_title'],
                  request['new_question_message'],
+                 ''])
+    return table
+
+
+def add_item_to_answer_table(table, request):
+    max_id = 0
+    if len(table) > 0:
+        max_id = max(int(i[0]) for i in table)
+    table.append([str(max_id+1),
+                 get_time_stamp(),
+                 '0',
+                 request['question_id'],
+                 request['new_answer_message'],
                  ''])
     return table
 
