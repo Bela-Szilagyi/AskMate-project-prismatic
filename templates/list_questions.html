@@ -37,7 +37,7 @@
                             {% if row[6] == '' %}
                                 <td><a href='/add_image/{{row[0]}}'>add image</td>
                             {% else %}
-                                <td><img src='static/uploads/img/{{row[6]}}' width = 40px> 
+                                <td><a href='static/uploads/img/{{row[6]}}' ><img src='static/uploads/img/{{row[6]}}' width = 40px>
                             {% endif %}
                     </tr>
                 {% endfor %}
